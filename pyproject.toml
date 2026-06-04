@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "thermaloop"
+version = "0.1.0"
+description = "An open, physics-informed simulation lab for direct-to-chip liquid cooling loops in AI data centers."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Travis Walla" }]
+keywords = ["liquid-cooling", "direct-to-chip", "data-center", "thermal", "heat-transfer", "ai-infrastructure"]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.11",
+    "matplotlib>=3.7",
+    "pandas>=2.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+experimental = ["torch>=2.0"]
+dev = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+include = ["thermaloop*"]
+exclude = ["experimental*", "tests*"]
