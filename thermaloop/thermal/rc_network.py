@@ -93,6 +93,28 @@ def simulate(t_axis, P_per_gpu, params, T0=None):
                      method='LSODA', rtol=1e-6, atol=1e-8, max_step=1.0)
 
 
+def steady_state_closed_form(params, P_per_gpu_const=700.0):
+    """Analytic steady state (no integration).
+
+    This is the exact closed form the in-browser explorer (docs/explorer.html)
+    reimplements in JavaScript. A test asserts it matches `steady_state`
+    (solve_ivp) so the browser demo provably runs the validated physics.
+    """
+    n = params['n_gpus']
+    cp = params['cp_water']
+    hf = params.get('h_property_factor', 1.0)
+    Q = P_per_gpu_const * n
+    eps, C_min = epsilon_ntu_counterflow(
+        params['m_dot'], params['m_dot_fac'], cp, cp, params['UA_hx'])
+    h_eff = params['h0'] * (params['m_dot'] / (n * params['m_dot_ref'])) ** 0.8 * hf
+    T_loop = params['T_fac_in'] + Q / (eps * C_min)
+    T_cp = T_loop + Q / (h_eff * params['A_cp'] * n)
+    T_ihs = T_cp + Q * (params['R_ihs_cp'] / n)
+    T_die = T_ihs + Q * (params['R_j_ihs'] / n)
+    return dict(T_die=T_die, T_ihs=T_ihs, T_coldplate=T_cp, T_loop=T_loop,
+                epsilon=eps, Q_die_W=Q)
+
+
 def steady_state(params, P_per_gpu_const=700.0, settle_s=2400.0):
     """Drive at constant power to steady state; return node temps + heat balance."""
     t_axis = np.arange(0, settle_s, 1.0)

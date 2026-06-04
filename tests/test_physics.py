@@ -135,3 +135,25 @@ def test_no_nans_in_baseline_run():
     r = system.run_server(T_horizon=300.0, seed=1)
     for key in ['T_die', 'T_loop', 'T_coldplate']:
         assert np.isfinite(r[key]).all(), key
+
+
+# --------------------------------------------------------------------------
+# Closed-form == solver  (the contract the browser explorer relies on)
+# --------------------------------------------------------------------------
+def test_closed_form_matches_solver():
+    from thermaloop.fluids import apply_fluid
+    cases = [
+        (700, 1.0, 30, "water", 1.0), (500, 1.0, 30, "water", 1.0),
+        (700, 0.6, 30, "water", 1.0), (700, 1.0, 42, "water", 1.0),
+        (700, 1.0, 30, "pg25", 1.0),  (700, 1.0, 30, "water", 0.6),
+        (900, 1.2, 22, "pg25", 0.8),
+    ]
+    for P_gpu, flow, Tfac, fluid, ua in cases:
+        p = rc_network.default_params()
+        p, _ = apply_fluid(p, fluid, T_ref=Tfac + 7.0)
+        p["m_dot"] *= flow
+        p["UA_hx"] *= ua
+        p["T_fac_in"] = Tfac
+        cf = rc_network.steady_state_closed_form(p, P_gpu)["T_die"]
+        ivp = rc_network.steady_state(p, P_gpu)["T_die"]
+        assert abs(cf - ivp) < 0.05, (P_gpu, flow, Tfac, fluid, ua, cf, ivp)

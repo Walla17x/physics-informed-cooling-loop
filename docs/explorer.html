@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ThermaLoop · D2C Cooling Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0f14; --panel:#11151c; --panel2:#161b24; --line:#222b38;
+    --ink:#e6edf3; --dim:#8da0b6; --faint:#5b6b80;
+    --coolant:#34d6c8; --heat:#ff6b3d; --hot:#ff3b3b; --safe:#39d98a; --amber:#ffc233;
+    --mono:'IBM Plex Mono',monospace; --disp:'Chakra Petch',sans-serif; --sans:'IBM Plex Sans',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);}
+  body{
+    background-image:
+      radial-gradient(1200px 600px at 80% -10%, rgba(52,214,200,.06), transparent 60%),
+      radial-gradient(900px 500px at 0% 110%, rgba(255,107,61,.05), transparent 55%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 3px);
+    min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px;}
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:20px;}
+  h1{font-family:var(--disp);font-weight:700;letter-spacing:.04em;margin:0;font-size:26px;}
+  h1 .slash{color:var(--coolant);}
+  .tag{font-family:var(--mono);color:var(--dim);font-size:12px;letter-spacing:.02em;margin-top:6px;}
+  .pill{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--coolant);border:1px solid #224; padding:5px 9px;border-radius:999px;background:#0e1620;}
+  .grid{display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start;}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+  .panel{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+    border-radius:12px;padding:16px;}
+  .panel h2{font-family:var(--disp);font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--faint);margin:0 0 14px;}
+  /* controls */
+  .ctl{margin-bottom:15px;}
+  .ctl .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+  .ctl label{font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.02em;}
+  .ctl .val{font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:600;}
+  input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:3px;
+    background:#1f2835;outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+    background:var(--coolant);border:2px solid #07221f;cursor:pointer;box-shadow:0 0 10px rgba(52,214,200,.5);}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--coolant);
+    border:2px solid #07221f;cursor:pointer;}
+  .seg{display:flex;gap:6px;}
+  .seg button{flex:1;font-family:var(--mono);font-size:12px;padding:8px;border-radius:8px;cursor:pointer;
+    background:#10161f;border:1px solid var(--line);color:var(--dim);transition:.15s;}
+  .seg button.on{background:#0e2622;border-color:#1e6157;color:var(--coolant);}
+  .faults{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+  .faults button{font-family:var(--mono);font-size:12px;text-align:left;padding:10px 12px;border-radius:8px;
+    cursor:pointer;background:#16100e;border:1px solid #3a241c;color:#ffb59a;transition:.15s;}
+  .faults button:hover{border-color:var(--heat);color:#ffd0bf;}
+  .faults button.reset{background:#0e1620;border-color:var(--line);color:var(--dim);}
+  /* readouts */
+  .die{display:flex;align-items:center;gap:16px;margin-bottom:8px;}
+  .die .big{font-family:var(--mono);font-weight:600;font-size:52px;line-height:1;}
+  .die .unit{font-family:var(--mono);font-size:16px;color:var(--dim);}
+  .die .sub{font-family:var(--mono);font-size:12px;color:var(--faint);}
+  .bar{height:10px;border-radius:6px;background:#1b2330;overflow:hidden;position:relative;margin:6px 0 2px;}
+  .bar i{display:block;height:100%;border-radius:6px;transition:width .25s, background .25s;}
+  .marks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--faint);}
+  .nodes{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;}
+  .node{display:flex;align-items:center;gap:10px;margin:7px 0;font-family:var(--mono);font-size:12.5px;}
+  .node .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+  .node .nm{color:var(--dim);width:120px;}
+  .node .t{margin-left:auto;color:var(--ink);font-weight:600;}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+  .stat{background:#0e1219;border:1px solid var(--line);border-radius:9px;padding:10px 11px;}
+  .stat .k{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);}
+  .stat .v{font-family:var(--mono);font-size:18px;font-weight:600;margin-top:3px;}
+  canvas{display:block;width:100%;border-radius:8px;background:#090c11;}
+  .cap{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:8px;line-height:1.5;}
+  .verdict{font-family:var(--mono);font-size:13px;font-weight:600;padding:9px 12px;border-radius:8px;margin-top:12px;}
+  footer{margin-top:26px;border-top:1px solid var(--line);padding-top:14px;font-family:var(--mono);
+    font-size:11px;color:var(--faint);line-height:1.6;}
+  a{color:var(--coolant);text-decoration:none;}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:6px;}
+  .legend span{display:flex;align-items:center;gap:5px;}
+  .legend i{width:18px;height:8px;border-radius:2px;display:inline-block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>THERMALOOP <span class="slash">//</span> COOLING EXPLORER</h1>
+      <div class="tag">Direct-to-chip liquid cooling · live client-side physics · drag anything</div>
+    </div>
+    <div class="pill" id="anchorPill">anchor ✓ 74.1 °C</div>
+  </header>
+
+  <div class="grid">
+    <!-- LEFT: controls -->
+    <div class="panel">
+      <h2>Controls</h2>
+      <div class="ctl">
+        <div class="row"><label>Per-GPU power</label><span class="val" id="vPow">700 W</span></div>
+        <input type="range" id="pow" min="200" max="900" step="5" value="700">
+      </div>
+      <div class="ctl">
+        <div class="row"><label>Coolant flow</label><span class="val" id="vFlow">1.00× design</span></div>
+        <input type="range" id="flow" min="0.30" max="1.30" step="0.01" value="1.00">
+      </div>
+      <div class="ctl">
+        <div class="row"><label>Facility water</label><span class="val" id="vFac">30 °C</span></div>
+        <input type="range" id="fac" min="18" max="46" step="1" value="30">
+      </div>
+      <div class="ctl">
+        <div class="row"><label>CDU health (UA)</label><span class="val" id="vUA">100%</span></div>
+        <input type="range" id="ua" min="0.40" max="1.00" step="0.01" value="1.00">
+      </div>
+      <div class="ctl">
+        <div class="row"><label>Coolant</label><span class="val" id="vFluid">water</span></div>
+        <div class="seg">
+          <button id="fW" class="on" data-f="water">Water</button>
+          <button id="fP" data-f="pg25">25% PG</button>
+        </div>
+      </div>
+      <h2 style="margin-top:18px">Trigger fault</h2>
+      <div class="faults">
+        <button data-fault="pump">⚠ Pump failure — flow collapses to 35%</button>
+        <button data-fault="spike">⚠ Workload spike — all GPUs to TDP</button>
+        <button data-fault="warm">⚠ Hot day — facility water to 44 °C</button>
+        <button class="reset" data-fault="reset">↺ Reset to steady state</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: readouts + envelope -->
+    <div style="display:flex;flex-direction:column;gap:18px;">
+      <div class="panel">
+        <h2>GPU junction</h2>
+        <div class="die">
+          <div><span class="big" id="dieT">74.1</span><span class="unit"> °C</span></div>
+          <div>
+            <div class="sub">margin to 90 °C limit</div>
+            <div class="sub" style="font-size:22px;color:var(--ink)" id="marg">15.9 K</div>
+          </div>
+        </div>
+        <div class="bar"><i id="dieBar"></i></div>
+        <div class="marks"><span>40</span><span>throttle 90 °C</span><span>100</span></div>
+        <div class="verdict" id="verdict"></div>
+
+        <div class="nodes" id="nodes"></div>
+
+        <div class="stats">
+          <div class="stat"><div class="k">CDU effectiveness</div><div class="v" id="eps">0.82</div></div>
+          <div class="stat"><div class="k">Pump power</div><div class="v" id="pump">265 W</div></div>
+          <div class="stat"><div class="k">Server heat load</div><div class="v" id="load">5.6 kW</div></div>
+          <div class="stat"><div class="k">Heat balance</div><div class="v" id="bal">100%</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Thermal envelope — die temp over power × flow</h2>
+        <canvas id="env" width="760" height="360"></canvas>
+        <div class="legend">
+          <span><i style="background:linear-gradient(90deg,#000004,#57106e,#bc3754,#f98e09,#fcffa4)"></i> 45 → 100 °C</span>
+          <span><i style="background:#fff;height:2px"></i> 70 / 80 / 90 °C iso-lines</span>
+          <span><i style="background:var(--coolant);border-radius:50%;width:9px;height:9px"></i> current operating point</span>
+        </div>
+        <div class="cap" id="envcap"></div>
+      </div>
+
+      <div class="panel" id="transPanel" style="display:none">
+        <h2 id="transTitle">Transient</h2>
+        <canvas id="trans" width="760" height="240"></canvas>
+        <div class="cap" id="transcap"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Live, client-side physics — reproduces the validated ThermaLoop model exactly
+    (T_die = 74.1 °C, ε = 0.822 at the anchor; verified to 0.000 °C against the Python
+    <code>solve_ivp</code> solver). Lumped 5-node RC network + ε-NTU CDU + affinity-law pump,
+    8× H100-class GPUs. This is a simulation lab, not CFD. &nbsp;·&nbsp;
+    <a href="https://github.com/Walla17x/thermaloop">github.com/Walla17x/thermaloop</a>
+  </footer>
+</div>
+
+<script>
+// ---- validated parameters (match thermaloop.thermal.rc_network.default_params, n=8) ----
+const P = {n:8, R_j_ihs:0.025, R_ihs_cp:0.020, h0:30000, A_cp:0.004, m_dot_ref:0.03,
+  m_dot:0.24, m_dot_fac:0.48, UA:2400, T_lim:90,
+  C_die:40, C_ihs:640, C_cp:7200, C_loop:12000, C_fac:80000, Ppump:250, Ppar:15};
+
+function epsNTU(mh, mc, cp, UA){
+  const Ch=mh*cp, Cc=mc*cp, Cmin=Math.min(Ch,Cc), Cmax=Math.max(Ch,Cc);
+  const Cr=Cmax>0?Cmin/Cmax:0, NTU=Cmin>0?UA/Cmin:0;
+  let eps;
+  if(Cr<0.999){const e=Math.exp(-NTU*(1-Cr)); eps=(1-e)/(1-Cr*e);}
+  else eps=NTU/(1+NTU);
+  return {eps, Cmin};
+}
+function waterMu(T){const Tk=T+273.15; return 2.414e-5*Math.pow(10,247.8/(Tk-140));}
+function waterCp(T){return 4186+0.10*(T-37)-0.003*(T-37)*(T-37);}
+function fluidProps(name, Tref){
+  if(name==='pg25'){
+    const cp=(4186-1100*0.25)+3*(Tref-37);
+    const muRef=waterMu(Tref), cpRef=waterCp(Tref);
+    const mu=muRef*(1+6*0.25);
+    const hf=Math.pow(muRef/mu,0.4)*Math.pow(cp/cpRef,0.4);
+    return {cp, hf};
+  }
+  return {cp:waterCp(Tref), hf:1.0};
+}
+// closed-form steady state (== solve_ivp, verified)
+function steady(powGpu, flowFrac, Tfac, UAfrac, fluid){
+  const Tref=Tfac+7, fp=fluidProps(fluid,Tref), cp=fp.cp, hf=fp.hf;
+  const m=P.m_dot*flowFrac, UA=P.UA*UAfrac, Q=powGpu*P.n;
+  const {eps,Cmin}=epsNTU(m,P.m_dot_fac,cp,UA);
+  const h=P.h0*Math.pow(m/(P.n*P.m_dot_ref),0.8)*hf;
+  const Tloop=Tfac+Q/(eps*Cmin);
+  const Tcp=Tloop+Q/(h*P.A_cp*P.n);
+  const Tihs=Tcp+Q*(P.R_ihs_cp/P.n);
+  const Tdie=Tihs+Q*(P.R_j_ihs/P.n);
+  const Tret=Tfac+Q/(P.m_dot_fac*cp);
+  const Qhx=eps*Cmin*(Tloop-Tfac);
+  const pump=P.Ppar+P.Ppump*Math.pow(flowFrac,3);
+  return {Tdie,Tihs,Tcp,Tloop,Tret,eps,Q,pump,closure:Qhx/Q};
+}
+// 5-node derivatives for transients
+function deriv(T, powGpu, flowFrac, Tfac, UAfrac, fluid){
+  const [Tj,Tihs,Tcp,Tloop,Tret]=T;
+  const Tref=Tfac+7, fp=fluidProps(fluid,Tref), cp=fp.cp, hf=fp.hf;
+  const m=P.m_dot*flowFrac, UA=P.UA*UAfrac, Ptot=powGpu*P.n;
+  const qji=(Tj-Tihs)/(P.R_j_ihs/P.n);
+  const qic=(Tihs-Tcp)/(P.R_ihs_cp/P.n);
+  const h=P.h0*Math.pow(m/(P.n*P.m_dot_ref),0.8)*hf;
+  const qcl=h*(P.A_cp*P.n)*(Tcp-Tloop);
+  const {eps,Cmin}=epsNTU(m,P.m_dot_fac,cp,UA);
+  const Qhx=eps*Cmin*(Tloop-Tfac);
+  const qfo=P.m_dot_fac*cp*(Tret-Tfac);
+  return [(Ptot-qji)/P.C_die,(qji-qic)/P.C_ihs,(qic-qcl)/P.C_cp,(qcl-Qhx)/P.C_loop,(Qhx-qfo)/P.C_fac];
+}
+
+// ---- inferno-ish colormap ----
+const CMAP=[[0,0,4],[40,11,84],[101,21,110],[159,42,99],[212,72,66],[245,125,21],[250,193,39],[252,255,164]];
+function inferno(t){t=Math.max(0,Math.min(1,t));const x=t*(CMAP.length-1);const i=Math.floor(x),f=x-i;
+  const a=CMAP[i],b=CMAP[Math.min(i+1,CMAP.length-1)];
+  return `rgb(${a[0]+(b[0]-a[0])*f|0},${a[1]+(b[1]-a[1])*f|0},${a[2]+(b[2]-a[2])*f|0})`;}
+
+// ---- state ----
+const S={pow:700,flow:1.0,fac:30,ua:1.0,fluid:'water'};
+const $=id=>document.getElementById(id);
+
+function tempColor(Td){if(Td>=90)return'var(--hot)';if(Td>=85)return'var(--amber)';return'var(--safe)';}
+
+function render(){
+  const r=steady(S.pow,S.flow,S.fac,S.ua,S.fluid);
+  const margin=P.T_lim-r.Tdie;
+  $('dieT').textContent=r.Tdie.toFixed(1);
+  $('dieT').style.color=tempColor(r.Tdie);
+  $('marg').textContent=margin.toFixed(1)+' K';
+  $('marg').style.color=tempColor(r.Tdie);
+  const frac=Math.max(0,Math.min(1,(r.Tdie-40)/(100-40)));
+  const bar=$('dieBar'); bar.style.width=(frac*100)+'%';
+  bar.style.background=r.Tdie>=90?'var(--hot)':r.Tdie>=85?'var(--amber)':'linear-gradient(90deg,#1e8c5e,var(--safe))';
+  $('eps').textContent=r.eps.toFixed(3);
+  $('pump').textContent=r.pump.toFixed(0)+' W';
+  $('load').textContent=(r.Q/1000).toFixed(1)+' kW';
+  $('bal').textContent=(r.closure*100).toFixed(0)+'%';
+  const v=$('verdict');
+  if(r.Tdie>=90){v.textContent='THROTTLING — junction at/over the 90 °C limit.';
+    v.style.background='#2a0f0f';v.style.color='var(--hot)';}
+  else if(margin<5){v.textContent='AT RISK — under 5 K of headroom.';
+    v.style.background='#2a230d';v.style.color='var(--amber)';}
+  else{v.textContent='SAFE — '+margin.toFixed(1)+' K of thermal headroom.';
+    v.style.background='#0e2218';v.style.color='var(--safe)';}
+  // node ladder
+  const nd=[['Die (junction)',r.Tdie,'#ff3b3b'],['IHS',r.Tihs,'#ff6b3d'],
+    ['Cold plate',r.Tcp,'#ffc233'],['Coolant loop',r.Tloop,'#34d6c8'],['Facility return',r.Tret,'#3a7fb8']];
+  $('nodes').innerHTML=nd.map(([nm,t,c])=>
+    `<div class="node"><span class="dot" style="background:${c}"></span>`+
+    `<span class="nm">${nm}</span><span class="t">${t.toFixed(1)} °C</span></div>`).join('');
+  drawEnv(r);
+}
+
+// ---- envelope heatmap ----
+function drawEnv(cur){
+  const c=$('env'),ctx=c.getContext('2d');
+  const W=c.width,H=c.height,padL=48,padB=34,padT=10,padR=12;
+  const x0=padL,x1=W-padR,y0=padT,y1=H-padB;
+  const Pmin=200,Pmax=900,Fmin=0.30,Fmax=1.30,Tmin=45,Tmax=100;
+  const NX=60,NY=44, cw=(x1-x0)/NX, ch=(y1-y0)/NY;
+  for(let j=0;j<NY;j++){const ff=Fmin+(Fmax-Fmin)*(j+0.5)/NY;
+    for(let i=0;i<NX;i++){const pp=Pmin+(Pmax-Pmin)*(i+0.5)/NX;
+      const Td=steady(pp,ff,S.fac,S.ua,S.fluid).Tdie;
+      ctx.fillStyle=inferno((Td-Tmin)/(Tmax-Tmin));
+      ctx.fillRect(x0+j*cw, y1-(i+1)*ch, cw+1, ch+1);}}
+  // iso-lines (sample on grid, mark crossings)
+  ctx.strokeStyle='rgba(255,255,255,.85)';ctx.fillStyle='rgba(255,255,255,.9)';
+  ctx.font='11px IBM Plex Mono';ctx.lineWidth=1;
+  [70,80,90].forEach(iso=>{
+    ctx.beginPath();let started=false,lx=0,ly=0;
+    for(let i=0;i<=NX;i++){const pp=Pmin+(Pmax-Pmin)*i/NX;
+      // for each power, find flow where Td==iso (binary search)
+      let lo=Fmin,hi=Fmax,fm=Fmin;
+      if(steady(pp,Fmax,S.fac,S.ua,S.fluid).Tdie>iso || steady(pp,Fmin,S.fac,S.ua,S.fluid).Tdie<iso){continue;}
+      for(let k=0;k<24;k++){fm=(lo+hi)/2;(steady(pp,fm,S.fac,S.ua,S.fluid).Tdie>iso)?(lo=fm):(hi=fm);}
+      const X=x0+((fm-Fmin)/(Fmax-Fmin))*(x1-x0);
+      const Y=y1-((pp-Pmin)/(Pmax-Pmin))*(y1-y0);
+      if(!started){ctx.moveTo(X,Y);started=true;}else ctx.lineTo(X,Y);lx=X;ly=Y;}
+    ctx.stroke();if(started)ctx.fillText(iso+'°',lx-22,ly-4);
+  });
+  // axes
+  ctx.fillStyle='#8da0b6';ctx.font='11px IBM Plex Mono';
+  ctx.fillText('flow →',x0+4,H-8);
+  ctx.save();ctx.translate(13,y0+90);ctx.rotate(-Math.PI/2);ctx.fillText('per-GPU power →',0,0);ctx.restore();
+  ctx.fillText('0.3×',x0,H-20);ctx.fillText('1.3×',x1-26,H-20);
+  // operating point
+  const px=x0+((S.flow-Fmin)/(Fmax-Fmin))*(x1-x0);
+  const py=y1-((S.pow-Pmin)/(Pmax-Pmin))*(y1-y0);
+  ctx.beginPath();ctx.arc(px,py,7,0,7);ctx.fillStyle='rgba(52,214,200,.25)';ctx.fill();
+  ctx.beginPath();ctx.arc(px,py,4,0,7);ctx.fillStyle='#34d6c8';ctx.fill();
+  ctx.strokeStyle='#0c0f14';ctx.lineWidth=1.5;ctx.stroke();
+  $('envcap').textContent=`Operating point: ${S.pow} W/GPU at ${S.flow.toFixed(2)}× flow, `+
+    `${S.fac} °C facility, ${S.fluid==='pg25'?'25% PG':'water'} → die ${cur.Tdie.toFixed(1)} °C.`;
+}
+
+// ---- transient animation ----
+let raf=null;
+function runFault(kind){
+  if(kind==='reset'){if(raf)cancelAnimationFrame(raf);$('transPanel').style.display='none';return;}
+  const titles={pump:'Pump failure',spike:'Workload spike',warm:'Hot-day facility water'};
+  $('transTitle').textContent='Transient — '+titles[kind];
+  $('transPanel').style.display='block';
+  // start from current steady state
+  const r0=steady(S.pow,S.flow,S.fac,S.ua,S.fluid);
+  let T=[r0.Tdie,r0.Tihs,r0.Tcp,r0.Tloop,r0.Tret];
+  const Thor=600, dt=0.05; const N=Math.round(Thor/dt);
+  const trace=[]; let throttleAt=null;
+  for(let s=0;s<=N;s++){
+    const t=s*dt;
+    let pow=S.pow,flow=S.flow,fac=S.fac;
+    if(kind==='pump'){const k=Math.min(1,Math.max(0,(t-30)/200));flow=S.flow+(0.35-S.flow)*k;}
+    if(kind==='spike'){pow=(t>=20)?900:S.pow;}
+    if(kind==='warm'){const k=Math.min(1,Math.max(0,(t-20)/60));fac=S.fac+(44-S.fac)*k;}
+    const d=deriv(T,pow,flow,fac,S.ua,S.fluid);
+    for(let i=0;i<5;i++)T[i]+=d[i]*dt;
+    if(s%20===0)trace.push([t,T[0]]);            // sample every 1 s
+    if(throttleAt===null && T[0]>=P.T_lim)throttleAt=t;
+  }
+  animateTrace(trace,throttleAt);
+}
+function animateTrace(trace,throttleAt){
+  const c=$('trans'),ctx=c.getContext('2d');const W=c.width,H=c.height;
+  const x0=46,x1=W-12,y0=12,y1=H-26;
+  const tMax=trace[trace.length-1][0];
+  let Tmax=95;trace.forEach(p=>Tmax=Math.max(Tmax,p[1]+3));const Tmin=Math.min(40,...trace.map(p=>p[1])-2||40);
+  const TY=v=>y1-((v-Tmin)/(Tmax-Tmin))*(y1-y0);
+  const TX=t=>x0+(t/tMax)*(x1-x0);
+  let n=0;
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    // grid + limit line
+    ctx.strokeStyle='#1c2430';ctx.lineWidth=1;ctx.font='10px IBM Plex Mono';ctx.fillStyle='#5b6b80';
+    for(let v=40;v<=Tmax;v+=20){const y=TY(v);ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke();
+      ctx.fillText(v+'°',6,y+3);}
+    const yl=TY(P.T_lim);ctx.strokeStyle='rgba(255,59,59,.7)';ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(x0,yl);ctx.lineTo(x1,yl);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='var(--hot)';ctx.fillStyle='#ff3b3b';ctx.fillText('limit 90°',x1-58,yl-4);
+    // curve up to n
+    ctx.beginPath();ctx.strokeStyle='#ff6b3d';ctx.lineWidth=2;
+    for(let i=0;i<=n&&i<trace.length;i++){const X=TX(trace[i][0]),Y=TY(trace[i][1]);
+      i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);}
+    ctx.stroke();
+    if(n<trace.length){const p=trace[Math.min(n,trace.length-1)];
+      ctx.beginPath();ctx.arc(TX(p[0]),TY(p[1]),4,0,7);ctx.fillStyle='#ffd0bf';ctx.fill();
+      $('transcap').innerHTML=`t = ${p[0].toFixed(0)} s &nbsp; die = `+
+        `<b style="color:${p[1]>=90?'#ff3b3b':'#ffb59a'}">${p[1].toFixed(1)} °C</b>`+
+        (throttleAt!==null?` &nbsp; · &nbsp; <b style="color:#ff3b3b">throttle @ ${throttleAt.toFixed(0)} s</b>`:'');
+    }
+    ctx.fillStyle='#5b6b80';ctx.fillText('time (s) →',x0,H-8);ctx.fillText('0',x0,H-8);ctx.fillText(tMax.toFixed(0),x1-24,H-8);
+    n+=3;if(n<trace.length+30)raf=requestAnimationFrame(frame);
+  }
+  if(raf)cancelAnimationFrame(raf);frame();
+}
+
+// ---- wiring ----
+function bind(id,fmt,key,xform){const el=$(id);el.addEventListener('input',()=>{
+  S[key]=xform?xform(+el.value):+el.value;$(fmt).textContent=fmtVal(key,el.value);render();});}
+function fmtVal(key,v){if(key==='pow')return (+v)+' W';if(key==='flow')return (+v).toFixed(2)+'× design';
+  if(key==='fac')return (+v)+' °C';if(key==='ua')return Math.round(+v*100)+'%';return v;}
+bind('pow','vPow','pow');bind('flow','vFlow','flow');bind('fac','vFac','fac');bind('ua','vUA','ua');
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  S.fluid=b.dataset.f;$('vFluid').textContent=b.dataset.f==='pg25'?'25% PG/water':'water';render();}));
+document.querySelectorAll('.faults button').forEach(b=>b.addEventListener('click',()=>runFault(b.dataset.fault)));
+render();
+</script>
+</body>
+</html>

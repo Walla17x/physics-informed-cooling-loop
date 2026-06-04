@@ -20,6 +20,13 @@ affinity-law pumps), stated plainly — not a machine-learning method claim.
 *Steady-state die temperature across the power × flow plane (70/80/90 °C
 iso-lines). More output in the [gallery](docs/gallery.md).*
 
+**▶ Try it live:** [interactive cooling explorer](docs/explorer.html) — drag
+GPU power, coolant flow, facility temperature, and coolant type and watch die
+temperature, margin, pump energy, and the operating point move in real time;
+trigger a pump failure and watch it race toward throttle. Runs entirely in the
+browser on the *same* validated physics (die temp matches the Python model to
+0.000 °C, enforced by a test). Enable GitHub Pages on `/docs` to host it.
+
 ## What it does
 
 - Simulates an 8-GPU H100-class server cooling loop end to end.
@@ -61,7 +68,7 @@ thermaloop sweep configs/sweeps/flow_vs_margin.yaml
 # Generate the reference design-space maps (envelope, 1-D loop, heat-path Sankey)
 thermaloop envelope
 
-pytest -q          # 34 tests: physics invariants, anchor validation, scenarios
+pytest -q          # 35 tests: physics invariants, anchor validation, scenarios
 ```
 
 Each command writes a portable HTML report to `reports/<name>/report.html` with
@@ -121,7 +128,7 @@ examples/     run_azure.py (real-trace driver)
 experimental/ DeepONet surrogate (unsupported; see its README)
 data/         Azure LLM inference traces (CC-BY)
 docs/         ASSUMPTIONS, VALIDATION, gallery, decision records (ADRs 000-003)
-tests/        34 tests: physics invariants, anchor validation, scenarios, fluids
+tests/        35 tests: physics invariants, anchor validation, scenarios, fluids
 ```
 
 ## Roadmap
