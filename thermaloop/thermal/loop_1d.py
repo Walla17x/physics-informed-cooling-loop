@@ -94,7 +94,8 @@ def thermal_odes_1d(t, T, P_func, p):
     q_ihs_cp = (T_ihs - T_cp) / (p['R_ihs_cp'] / p['n_gpus'])
 
     # Cold plate -> coolant convection, distributed over CP cells
-    h_eff = p['h0'] * (p['m_dot'] / (p['n_gpus'] * p['m_dot_ref'])) ** 0.8
+    h_eff = (p['h0'] * (p['m_dot'] / (p['n_gpus'] * p['m_dot_ref'])) ** 0.8
+             * p.get('h_property_factor', 1.0))
     A_total = p['A_cp'] * p['n_gpus']
     A_per_cp_cell = A_total / g['N_cp']
     q_cp_cells = h_eff * A_per_cp_cell * (T_cp - T_loop[g['idx_cp']])  # array
@@ -178,8 +179,8 @@ def steady_state_1d(params, P_const=700.0):
     T_loop = sol.y[3:3 + N, -1]
     T_fac = sol.y[3 + N, -1]
     # Heat balance check
-    h_eff = params['h0'] * (params['m_dot'] /
-                            (params['n_gpus'] * params['m_dot_ref'])) ** 0.8
+    h_eff = (params['h0'] * (params['m_dot'] / (params['n_gpus'] * params['m_dot_ref'])) ** 0.8
+             * params.get('h_property_factor', 1.0))
     A_per_cp = params['A_cp'] * params['n_gpus'] / g['N_cp']
     UA_per_cdu = params['UA_hx_total'] / g['N_cdu']
     Q_cp = (h_eff * A_per_cp * (T_cp - T_loop[g['idx_cp']])).sum()

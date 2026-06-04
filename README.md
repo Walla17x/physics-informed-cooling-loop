@@ -15,6 +15,11 @@ anchor.
 Here "physics-informed" means physics-based modeling (conservation laws, ε-NTU,
 affinity-law pumps), stated plainly — not a machine-learning method claim.
 
+![Thermal envelope](docs/img/thermal_envelope.png)
+
+*Steady-state die temperature across the power × flow plane (70/80/90 °C
+iso-lines). More output in the [gallery](docs/gallery.md).*
+
 ## What it does
 
 - Simulates an 8-GPU H100-class server cooling loop end to end.
@@ -56,7 +61,7 @@ thermaloop sweep configs/sweeps/flow_vs_margin.yaml
 # Generate the reference design-space maps (envelope, 1-D loop, heat-path Sankey)
 thermaloop envelope
 
-pytest -q          # 29 tests: physics invariants, anchor validation, scenarios
+pytest -q          # 34 tests: physics invariants, anchor validation, scenarios
 ```
 
 Each command writes a portable HTML report to `reports/<name>/report.html` with
@@ -71,9 +76,15 @@ minimum margin, time-to-throttle, and pump energy.
 Sweeps (`configs/sweeps/`): pump speed vs die temperature, flow vs thermal
 margin (Pareto front), CDU setpoint vs energy.
 
-Scenarios are plain YAML — define a workload, static overrides, and a
-perturbation timeline (step/ramp on flow, CDU conductance, facility temperature,
-or power). No code needed to add a new one.
+Real workloads & coolants: `configs/azure_conv.yaml` and `azure_code.yaml` drive
+the server with real Microsoft Azure LLM inference traces (CC-BY, shipped in
+`data/`). `configs/pg_coolant.yaml` swaps water for a 25% propylene-glycol/water
+mixture via the temperature-dependent fluid model — lower specific heat and
+higher viscosity, so the die runs hotter.
+
+Scenarios are plain YAML — define a workload, a coolant fluid, static overrides,
+and a perturbation timeline (step/ramp on flow, CDU conductance, facility
+temperature, or power). No code needed to add a new one.
 
 ## Validation
 
@@ -100,27 +111,31 @@ thermaloop/
   cdu/        ε-NTU heat exchanger
   hydraulics/ affinity-law pump
   safety.py   margin + time-to-throttle
+  fluids.py   temperature-dependent coolant properties (water / PG-water)
   scenarios/  engine.py (YAML perturbation timeline), sweeps.py
   viz/        plots.py, report.py (HTML), style.py
   system.py   composes the full server simulation
   __main__.py CLI: run / sweep / envelope
-configs/      baseline + faults/ + sweeps/  (YAML)
+configs/      baseline + faults/ + sweeps/ + azure + pg_coolant  (YAML)
+examples/     run_azure.py (real-trace driver)
 experimental/ DeepONet surrogate (unsupported; see its README)
-data/         optional Azure traces (CC-BY)
-docs/         ASSUMPTIONS, VALIDATION, decision records
-tests/        29 tests: physics invariants, anchor validation, scenarios
+data/         Azure LLM inference traces (CC-BY)
+docs/         ASSUMPTIONS, VALIDATION, gallery, decision records (ADRs 000-003)
+tests/        34 tests: physics invariants, anchor validation, scenarios, fluids
 ```
 
 ## Roadmap
 
-Done in v0.1: scenario engine, five fault scenarios, three optimization sweeps,
-self-contained HTML reports, and the plot suite (transient, safety-margin
-timeline, Pareto front, thermal envelope, 1-D loop field, heat-path Sankey).
+Done in v0.2: scenario engine; five fault scenarios; three optimization sweeps;
+temperature-dependent, selectable fluid model (water / PG-water); real
+Azure-trace scenarios; self-contained HTML reports; the plot suite (transient,
+safety-margin timeline, Pareto, thermal envelope, 1-D loop field, heat-path
+Sankey); and a committed [gallery](docs/gallery.md).
 
 Next:
-- Multi-rack / shared-CDU topology (currently single server)
-- Temperature-dependent fluid properties and a PG/water mixture model
-- A documented Azure-trace driven scenario as a worked example
+- Multi-rack / shared-CDU topology (currently single server) — a deliberate
+  scope decision, not a default
+- Per-timestep fluid-property variation (currently constant within a run)
 - (Experimental) operator-learning surrogate with a Fourier-neural-operator trunk
 
 ## Author

@@ -1,0 +1,9 @@
+name: azure_code
+description: Real Azure LLM inference code-completion trace (CC-BY) - burstier, long-context, short-generation - on the reference server.
+workload:
+  type: azure
+  path: data/AzureLLMInferenceTrace_code.csv
+  T_horizon: 600
+overrides: {}
+perturbations: []
+safety: { T_limit: 90 }

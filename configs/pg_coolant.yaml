@@ -1,0 +1,7 @@
+name: pg_coolant
+description: Baseline server running a 25% propylene-glycol/water coolant instead of pure water. Lower specific heat -> larger loop temperature rise and reduced margin; demonstrates the fluid-properties model.
+workload: { type: synthetic, T_horizon: 600, seed: 0 }
+fluid: pg25
+overrides: {}
+perturbations: []
+safety: { T_limit: 90 }

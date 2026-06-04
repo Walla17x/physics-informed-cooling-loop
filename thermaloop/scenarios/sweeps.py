@@ -25,6 +25,8 @@ def run_sweep(config):
     n_gpus = config.get("n_gpus", 8)
     base = rc_network.default_params(n_gpus=n_gpus)
     base.update(config.get("overrides", {}) or {})
+    from thermaloop.fluids import apply_fluid
+    base, _fluid = apply_fluid(base, config.get("fluid", "water"))
     P_const = config.get("P_per_gpu", 700.0)
     T_limit = (config.get("safety", {}) or {}).get("T_limit",
                                                    safety.DEFAULT_T_LIMIT)

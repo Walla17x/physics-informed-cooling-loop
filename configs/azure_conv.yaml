@@ -1,0 +1,9 @@
+name: azure_conv
+description: Real Microsoft Azure LLM inference conversation trace (CC-BY) driving the reference 8-GPU server. Demonstrates ThermaLoop on a production workload rather than a synthetic one.
+workload:
+  type: azure
+  path: data/AzureLLMInferenceTrace_conv.csv
+  T_horizon: 600
+overrides: {}
+perturbations: []
+safety: { T_limit: 90 }

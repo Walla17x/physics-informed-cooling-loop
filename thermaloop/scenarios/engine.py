@@ -100,6 +100,8 @@ def run_scenario(config, dt=1.0):
     n_gpus = config.get("n_gpus", 8)
     base_params = rc_network.default_params(n_gpus=n_gpus)
     base_params.update(config.get("overrides", {}) or {})
+    from thermaloop.fluids import apply_fluid
+    base_params, fluid = apply_fluid(base_params, config.get("fluid", "water"))
 
     wl = config.get("workload", {}) or {}
     T_horizon = wl.get("T_horizon", 600.0)
@@ -157,4 +159,5 @@ def run_scenario(config, dt=1.0):
         mean_gpu_power_W=float(P_applied.mean()),
         safety=safety_summary,
         params=base_params, config=config,
+        fluid=base_params.get("fluid_name", "water"),
     )

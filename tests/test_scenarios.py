@@ -60,3 +60,38 @@ def test_pump_speed_sweep_shows_cubic_cost():
     sw = sweeps.run_sweep("configs/sweeps/pump_speed.yaml")
     P = [r["pump_power_W"] for r in sw["rows"]]
     assert P[-1] > P[0] * 4   # cubic growth across the flow range
+
+
+# --------------------------------------------------------------------------
+# Fluid properties (Phase 3)
+# --------------------------------------------------------------------------
+def test_water_fluid_preserves_anchor_cp():
+    from thermaloop.fluids import get_fluid, apply_fluid
+    from thermaloop.thermal import rc_network
+    assert abs(get_fluid("water").cp(37.0) - 4186.0) < 0.5
+    p, _ = apply_fluid(rc_network.default_params(), "water")
+    assert abs(p["cp_water"] - 4186.0) < 1.0
+    assert abs(p["h_property_factor"] - 1.0) < 1e-9   # water => no correction
+
+
+def test_pg_coolant_runs_hotter_than_water():
+    base = engine.run_scenario("configs/baseline.yaml")
+    pg = engine.run_scenario("configs/pg_coolant.yaml")
+    # lower cp + higher viscosity -> higher die temp, lower margin
+    assert pg["safety"]["peak_T_die"] > base["safety"]["peak_T_die"] + 1.0
+    assert pg["safety"]["min_margin_K"] < base["safety"]["min_margin_K"]
+    assert pg["params"]["h_property_factor"] < 1.0
+
+
+def test_pg_has_lower_cp_and_higher_viscosity():
+    from thermaloop.fluids import get_fluid
+    w, pg = get_fluid("water"), get_fluid("pg25")
+    assert pg.cp(37) < w.cp(37)
+    assert pg.mu(37) > w.mu(37)
+
+
+@pytest.mark.parametrize("cfg", ["configs/azure_conv.yaml", "configs/azure_code.yaml"])
+def test_azure_traces_run_clean(cfg):
+    r = engine.run_scenario(cfg)
+    assert np.isfinite(r["T_die"]).all()
+    assert 40.0 < r["safety"]["peak_T_die"] < 120.0

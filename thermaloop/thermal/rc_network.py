@@ -50,7 +50,8 @@ def _odes(t, T, P_func, p):
 
     q_j_ihs = (T_j - T_ihs) / (p['R_j_ihs'] / p['n_gpus'])
     q_ihs_cp = (T_ihs - T_cp) / (p['R_ihs_cp'] / p['n_gpus'])
-    h_eff = p['h0'] * (p['m_dot'] / (p['n_gpus'] * p['m_dot_ref'])) ** 0.8
+    h_eff = (p['h0'] * (p['m_dot'] / (p['n_gpus'] * p['m_dot_ref'])) ** 0.8
+             * p.get('h_property_factor', 1.0))
     q_cp_loop = h_eff * (p['A_cp'] * p['n_gpus']) * (T_cp - T_loop)
 
     eps, C_min = epsilon_ntu_counterflow(

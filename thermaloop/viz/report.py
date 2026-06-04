@@ -63,7 +63,7 @@ def _fig_to_b64(fig):
 
 
 def render_report(title, description, summary, sections,
-                  verdict, verdict_ok=True, version="0.1.0"):
+                  verdict, verdict_ok=True, version="0.2.0"):
     """Render the HTML string. `sections` is a list of (title, fig, note)."""
     rendered_sections = [
         dict(title=t, img=_fig_to_b64(f), note=note)

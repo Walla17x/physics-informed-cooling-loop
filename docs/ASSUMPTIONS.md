@@ -11,10 +11,15 @@ They are listed so you always know what the model can and cannot tell you.
   the die, the cold plate, or across a manifold. For 3-D gradients, hot spots
   on the die, or detailed cold-plate channel design, you need CFD (Ansys,
   Cadence). ThermaLoop is for system-level behavior, not chip-level detail.
-- **Constant fluid properties.** Water density, specific heat, and viscosity
-  are held constant. Real coolants (propylene-glycol/water mixtures) have
-  temperature-dependent properties; this introduces error at large temperature
-  swings.
+- **Fluid properties from a selectable fluid model.** Specific heat, density,
+  and viscosity come from temperature-dependent correlations for the chosen
+  coolant (`water` by default, `pg25` for a 25% propylene-glycol/water mixture).
+  Viscosity feeds the cold-plate convection via a Dittus-Boelter property ratio,
+  so a more viscous coolant correctly runs hotter. Properties are evaluated at a
+  representative loop temperature and held constant *within* a run; full
+  per-timestep property variation is a documented future refinement, not yet
+  modeled. Water is calibrated so the validated anchor (cp = 4186 J/kg/K at the
+  nominal loop temperature) is preserved exactly.
 - **Single phase only.** No boiling, no two-phase cold plates, no immersion.
 - **Resistances and capacitances are representative, not measured.** They are
   set to reproduce published steady-state behavior for H100-class hardware, not
