@@ -1,5 +1,7 @@
 # ThermaLoop
 
+[![ci](https://github.com/Walla17x/thermaloop/actions/workflows/ci.yml/badge.svg)](https://github.com/Walla17x/thermaloop/actions/workflows/ci.yml)
+
 **An open, physics-informed simulation lab for direct-to-chip liquid cooling in AI data centers.**
 
 ThermaLoop models the full path heat takes — from an LLM-inference workload,
@@ -20,12 +22,12 @@ affinity-law pumps), stated plainly — not a machine-learning method claim.
 *Steady-state die temperature across the power × flow plane (70/80/90 °C
 iso-lines). More output in the [gallery](docs/gallery.md).*
 
-**▶ Try it live:** [interactive cooling explorer](docs/explorer.html) — drag
+**▶ Try it live:** [**interactive cooling explorer**](https://walla17x.github.io/thermaloop/explorer.html) — drag
 GPU power, coolant flow, facility temperature, and coolant type and watch die
 temperature, margin, pump energy, and the operating point move in real time;
 trigger a pump failure and watch it race toward throttle. Runs entirely in the
 browser on the *same* validated physics (die temp matches the Python model to
-0.000 °C, enforced by a test). Enable GitHub Pages on `/docs` to host it.
+0.000 °C, enforced by a test). Source: [docs/explorer.html](docs/explorer.html).
 
 ## What it does
 
