@@ -1,0 +1,6 @@
+name: coolant_loss
+description: Coarse coolant-loss approximation - flow ramps to 25% of design (loop inventory loss). Labeled approximate; see ASSUMPTIONS.md.
+workload: { type: synthetic, T_horizon: 600, seed: 0 }
+perturbations:
+  - { param: m_dot, kind: ramp, start_s: 150, end_s: 300, to_factor: 0.25 }
+safety: { T_limit: 90 }

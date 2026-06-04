@@ -1,0 +1,7 @@
+name: cdu_setpoint
+description: Sweep facility supply temperature (CDU setpoint) against die temperature and margin.
+sweep:
+  param: T_fac_in
+  values: [22, 26, 30, 34, 38, 42, 46]
+P_per_gpu: 700
+safety: { T_limit: 90 }

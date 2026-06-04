@@ -1,0 +1,6 @@
+name: pump_degradation
+description: Coolant flow ramps down to 40% of design between t=200s and t=450s (failing pump / clogged filter).
+workload: { type: synthetic, T_horizon: 600, seed: 0 }
+perturbations:
+  - { param: m_dot, kind: ramp, start_s: 200, end_s: 450, to_factor: 0.4 }
+safety: { T_limit: 90 }

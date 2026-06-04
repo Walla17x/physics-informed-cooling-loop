@@ -1,0 +1,7 @@
+name: pump_speed
+description: Sweep coolant flow (pump speed) and trade die temperature against pump power.
+sweep:
+  param: m_dot
+  values_factor: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2]
+P_per_gpu: 700
+safety: { T_limit: 90 }

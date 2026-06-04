@@ -17,7 +17,11 @@ dependencies = [
     "matplotlib>=3.7",
     "pandas>=2.0",
     "pyyaml>=6.0",
+    "jinja2>=3.0",
 ]
+
+[project.scripts]
+thermaloop = "thermaloop.__main__:main"
 
 [project.optional-dependencies]
 experimental = ["torch>=2.0"]

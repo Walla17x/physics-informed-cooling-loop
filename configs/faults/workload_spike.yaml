@@ -1,0 +1,6 @@
+name: workload_spike
+description: A lightly-loaded server (low arrival rate) hit by a sudden sustained full-TDP burst from t=200s to t=400s.
+workload: { type: synthetic, T_horizon: 600, seed: 0, base_rate: 0.25, burst_amplitude: 0.0 }
+perturbations:
+  - { param: power, kind: step, start_s: 200, end_s: 400, to_value: 700 }
+safety: { T_limit: 90 }

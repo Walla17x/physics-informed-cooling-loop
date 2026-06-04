@@ -43,9 +43,37 @@ for the scope charter.
 
 ```bash
 pip install -e .
-python -m thermaloop.system        # runs a baseline server simulation
-pytest -q                          # physics invariants + anchor validation
+
+# Run the nominal server and write a self-contained HTML engineering report
+thermaloop run configs/baseline.yaml
+
+# Run a fault scenario (5 included)
+thermaloop run configs/faults/pump_degradation.yaml
+
+# Run an optimization sweep (pump speed / flow vs margin / CDU setpoint)
+thermaloop sweep configs/sweeps/flow_vs_margin.yaml
+
+# Generate the reference design-space maps (envelope, 1-D loop, heat-path Sankey)
+thermaloop envelope
+
+pytest -q          # 29 tests: physics invariants, anchor validation, scenarios
 ```
+
+Each command writes a portable HTML report to `reports/<name>/report.html` with
+the plots embedded — one file you can open or share, no external assets.
+
+### Scenarios included
+
+Faults (`configs/faults/`): workload spike, pump degradation, CDU fouling, warm
+facility water, coolant-loss approximation. Each reports peak die temperature,
+minimum margin, time-to-throttle, and pump energy.
+
+Sweeps (`configs/sweeps/`): pump speed vs die temperature, flow vs thermal
+margin (Pareto front), CDU setpoint vs energy.
+
+Scenarios are plain YAML — define a workload, static overrides, and a
+perturbation timeline (step/ramp on flow, CDU conductance, facility temperature,
+or power). No code needed to add a new one.
 
 ## Validation
 
@@ -72,21 +100,27 @@ thermaloop/
   cdu/        ε-NTU heat exchanger
   hydraulics/ affinity-law pump
   safety.py   margin + time-to-throttle
+  scenarios/  engine.py (YAML perturbation timeline), sweeps.py
+  viz/        plots.py, report.py (HTML), style.py
   system.py   composes the full server simulation
+  __main__.py CLI: run / sweep / envelope
+configs/      baseline + faults/ + sweeps/  (YAML)
 experimental/ DeepONet surrogate (unsupported; see its README)
 data/         optional Azure traces (CC-BY)
 docs/         ASSUMPTIONS, VALIDATION, decision records
-tests/        physics invariants + anchor validation
+tests/        29 tests: physics invariants, anchor validation, scenarios
 ```
 
 ## Roadmap
 
-- Scenario engine (YAML-driven baseline / fault / sweep runs)
-- Fault library: workload spike, pump degradation, CDU fouling, warm facility
-  water, coolant-loss approximation
-- Optimization sweeps: pump speed vs die temperature, flow vs thermal margin,
-  CDU setpoint vs energy
-- Auto-generated HTML engineering report and a polished plot suite
+Done in v0.1: scenario engine, five fault scenarios, three optimization sweeps,
+self-contained HTML reports, and the plot suite (transient, safety-margin
+timeline, Pareto front, thermal envelope, 1-D loop field, heat-path Sankey).
+
+Next:
+- Multi-rack / shared-CDU topology (currently single server)
+- Temperature-dependent fluid properties and a PG/water mixture model
+- A documented Azure-trace driven scenario as a worked example
 - (Experimental) operator-learning surrogate with a Fourier-neural-operator trunk
 
 ## Author

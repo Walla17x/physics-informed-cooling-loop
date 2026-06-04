@@ -107,3 +107,8 @@ def steady_state(params, P_per_gpu_const=700.0, settle_s=2400.0):
                 T_fac_return=T_fac, Q_die_W=Q_die, Q_hx_W=Q_hx, epsilon=eps,
                 deltaT_loop=T_loop - params['T_fac_in'],
                 closure=Q_hx / Q_die if Q_die else float('nan'))
+
+
+# Public alias so the scenario engine can reuse the validated RHS
+# with time-varying parameters without duplicating the physics.
+odes = _odes

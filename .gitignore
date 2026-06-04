@@ -9,7 +9,9 @@ venv/
 .pytest_cache/
 .ipynb_checkpoints/
 .DS_Store
-reports/*
-!reports/.gitkeep
 /tmp/
 *.npz
+# Generated reports are ignored except the committed baseline sample
+reports/*
+!reports/baseline/
+!reports/baseline/report.html

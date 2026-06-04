@@ -1,0 +1,6 @@
+name: baseline
+description: Nominal 8-GPU server under a synthetic inference workload at design conditions.
+workload: { type: synthetic, T_horizon: 600, seed: 0 }
+overrides: {}
+perturbations: []
+safety: { T_limit: 90 }

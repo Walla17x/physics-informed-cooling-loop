@@ -1,0 +1,6 @@
+name: cdu_fouling
+description: CDU conductance (UA) degrades to 55% over the run as the heat exchanger fouls.
+workload: { type: synthetic, T_horizon: 600, seed: 0 }
+perturbations:
+  - { param: UA_hx, kind: ramp, start_s: 60, end_s: 540, to_factor: 0.55 }
+safety: { T_limit: 90 }

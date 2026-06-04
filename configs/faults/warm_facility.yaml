@@ -1,0 +1,6 @@
+name: warm_facility
+description: Facility supply water steps up from 30C to 42C at t=200s (hot day / cooling-tower approach limit).
+workload: { type: synthetic, T_horizon: 600, seed: 0 }
+perturbations:
+  - { param: T_fac_in, kind: step, start_s: 200, to_value: 42 }
+safety: { T_limit: 90 }

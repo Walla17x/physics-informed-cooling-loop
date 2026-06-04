@@ -1,0 +1,7 @@
+name: flow_vs_margin
+description: Pareto front of thermal safety margin against pump power across flow.
+sweep:
+  param: m_dot
+  values_factor: [0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2]
+P_per_gpu: 700
+safety: { T_limit: 90 }
