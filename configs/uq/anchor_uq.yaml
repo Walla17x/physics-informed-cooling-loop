@@ -1,0 +1,16 @@
+name: anchor_uq
+description: >
+  Parametric uncertainty propagated through the Khalili anchor operating point
+  (steady design conditions, no fault). The ensemble's T_die distribution
+  should bracket the validated 74.1 C reference and the calibrated CDU
+  effectiveness ~0.82.
+workload: { type: synthetic, T_horizon: 600, seed: 0 }
+ensemble:
+  n_samples: 200
+  seed: 7
+  sampler: lhs
+  uncertain:
+    - { param: h0,       dist: lognormal, mean: 30000.0, cv: 0.12 }
+    - { param: UA_hx,    dist: normal,    mean_factor: 1.0, cv: 0.08 }
+    - { param: R_ihs_cp, dist: normal,    mean: 0.020, cv: 0.10, clip_min: 0.005 }
+safety: { T_limit: 90 }

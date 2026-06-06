@@ -10,8 +10,8 @@ Each command writes a self-contained HTML engineering report to reports/.
 import argparse
 import os
 
-from thermaloop.scenarios import engine, sweeps
-from thermaloop.viz import plots, report
+from thermaloop.scenarios import engine, sweeps, ensemble
+from thermaloop.viz import plots, report, uq_plots
 
 
 def _cmd_run(args):
@@ -75,6 +75,51 @@ def _cmd_sweep(args):
     print(f"report -> {out}")
 
 
+def _cmd_ensemble(args):
+    res = ensemble.run_ensemble(args.config)
+    pct = res["percentiles"]
+    summary = [
+        ("Scenario", res["name"]),
+        ("Sampler / N", f"{res['sampler'].upper()} / {res['n_samples']}"),
+        ("Uncertain params", ", ".join(res["param_names"])),
+        ("Min-margin P5 / P50 / P95",
+         f"{pct['min_margin_K'][5]:.1f} / "
+         f"{pct['min_margin_K'][50]:.1f} / "
+         f"{pct['min_margin_K'][95]:.1f} K"),
+        ("Peak T_die P5 / P50 / P95",
+         f"{pct['peak_T_die'][5]:.1f} / "
+         f"{pct['peak_T_die'][50]:.1f} / "
+         f"{pct['peak_T_die'][95]:.1f} C"),
+        ("Throttle probability", f"{res['throttle_prob']*100:.1f} %"),
+    ]
+    verdict_ok = res["throttle_prob"] < 0.05
+    if verdict_ok:
+        verdict = (f"SAFE: across {res['n_samples']} parametric samples, "
+                   f"throttle probability {res['throttle_prob']*100:.1f} % "
+                   f"(< 5 %).")
+    else:
+        verdict = (f"AT RISK: across {res['n_samples']} parametric samples, "
+                   f"throttle probability {res['throttle_prob']*100:.1f} % "
+                   f"— design margin does not survive realistic parameter "
+                   f"uncertainty.")
+    sections = [
+        ("Margin distribution", uq_plots.margin_distribution(res), None),
+        ("Peak T_die distribution",
+         uq_plots.peak_die_distribution(res), None),
+        ("Die-temperature envelope over time",
+         uq_plots.margin_envelope_timeline(res), None),
+    ]
+    out = os.path.join("reports", res["name"], "report.html")
+    report.write_report(out, title=res["name"],
+                        description=res["description"],
+                        summary=summary, sections=sections,
+                        verdict=verdict, verdict_ok=verdict_ok)
+    print(f"throttle prob {res['throttle_prob']*100:.1f}%  "
+          f"P50 margin {pct['min_margin_K'][50]:.1f}K  "
+          f"P5 margin {pct['min_margin_K'][5]:.1f}K")
+    print(f"report -> {out}")
+
+
 def _cmd_envelope(args):
     sections = [
         ("Thermal envelope", plots.thermal_envelope(), None),
@@ -102,6 +147,9 @@ def main(argv=None):
     p_sw = sub.add_parser("sweep", help="run an optimization sweep config")
     p_sw.add_argument("config")
     p_sw.set_defaults(func=_cmd_sweep)
+    p_uq = sub.add_parser("ensemble", help="run a UQ ensemble scenario config")
+    p_uq.add_argument("config")
+    p_uq.set_defaults(func=_cmd_ensemble)
     p_env = sub.add_parser("envelope", help="generate reference design-space maps")
     p_env.set_defaults(func=_cmd_envelope)
     args = ap.parse_args(argv)

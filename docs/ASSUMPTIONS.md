@@ -58,3 +58,27 @@ They are listed so you always know what the model can and cannot tell you.
   topology. No telemetry/BMS integration. No control loop, no optimization
   beyond the parametric sweeps. This is a sandbox for understanding behavior,
   not an operations tool.
+
+## Uncertainty quantification
+
+- **Parametric, not structural.** The ensemble runner propagates uncertainty
+  in parameter *values* (cold-plate convection, CDU conductance, TIM
+  resistance, facility supply temperature). It does not propagate uncertainty
+  in the *structure* of the model (lumped vs distributed, single-phase vs
+  two-phase, single-zone vs multi-zone CDU). Structural uncertainty is
+  outside the scope of v1 UQ and is generally far larger than parametric
+  uncertainty.
+- **Independence assumed.** Uncertain parameters are sampled independently.
+  Some pairs (cold-plate convection and TIM resistance, both driven by
+  manufacturing tolerance) are physically correlated; treating them as
+  independent likely *overstates* the breadth of the predicted distribution.
+  Correlation matrices are a planned follow-up.
+- **Distributions are user-supplied.** ThermaLoop does not infer the
+  distribution shape of any parameter from data. The user picks normal /
+  lognormal / uniform / triangular and the moments. Honest defaults in
+  `configs/uq/` use CVs of 8-15 % for parameters bounded by manufacturing
+  tolerance and a uniform band on facility supply temperature.
+- **Latin hypercube by default; Monte Carlo opt-in.** LHS gives strictly
+  better coverage at small N; MC is available for sanity checks. Reported
+  percentiles assume the ensemble is large enough for the tail of interest
+  (N >= 200 for P5/P95 reporting; smaller for medians).
