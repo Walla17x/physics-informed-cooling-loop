@@ -30,7 +30,7 @@ They are listed so you always know what the model can and cannot tell you.
 
 - **Single-zone effectiveness-NTU.** The CDU is one counterflow heat exchanger
   with one UA value, calibrated so effectiveness is ~0.82 at design flow
-  (Khalili et al. 2024). It does not resolve the internal temperature profile of
+  (Heydari et al. 2024). It does not resolve the internal temperature profile of
   the exchanger and does not enforce a dew-point / condensation guard.
 
 ## Hydraulics

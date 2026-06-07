@@ -3,7 +3,7 @@
 State vector: [T_die, T_ihs, T_coldplate, T_loop, T_facility_return]
 
 Validated steady state (8 GPUs, 700 W each, design flow, 30 C facility supply):
-    CDU effectiveness  ~ 0.82   (Khalili et al. 2024 anchor: 0.82-0.83)
+    CDU effectiveness  ~ 0.82   (Heydari et al. 2024 anchor: 0.82-0.83)
     T_die              ~ 74 C
     loop dT vs facility~ 6.8 K
     heat balance closure 100 %

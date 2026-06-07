@@ -1,6 +1,6 @@
 name: anchor_uq
 description: >
-  Parametric uncertainty propagated through the Khalili anchor operating point
+  Parametric uncertainty propagated through the Heydari anchor operating point
   (steady design conditions, no fault). The ensemble's T_die distribution
   should bracket the validated 74.1 C reference and the calibrated CDU
   effectiveness ~0.82.

@@ -5,8 +5,8 @@ experimental anchor and checked by the test suite on every run.
 
 ## Anchor
 
-Khalili et al., *Experimental evaluation of direct-to-chip cold plate liquid
-cooling for high-heat-density data centers*, Applied Thermal Engineering 240
+Heydari et al., *Experimental evaluation of direct-to-chip cold plate liquid
+cooling for high-heat-density data centers*, Applied Thermal Engineering 239
 (2024): CDU effectiveness 0.82-0.83 at design flow.
 
 ## Reference scenario
@@ -18,7 +18,7 @@ supply at 30 C, design-point flow.
 
 | Quantity                | ThermaLoop | Expected / anchor          |
 |-------------------------|-----------:|----------------------------|
-| CDU effectiveness       | 0.822      | 0.82-0.83 (Khalili 2024)   |
+| CDU effectiveness       | 0.822      | 0.82-0.83 (Heydari 2024)   |
 | T_die at TDP            | 74.1 C    | 70-85 C, H100-class        |
 | Loop dT above facility  | 6.8 K     | 5-10 K, warm-water D2C     |
 | Heat-balance closure    | 100.0 %   | 100 % (conservation)       |

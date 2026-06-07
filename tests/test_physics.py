@@ -2,7 +2,7 @@
 
 These tests encode the physics invariants and the published-anchor validation.
 They are what let a reviewer trust the model without reading every line:
-energy must balance, the steady state must match the Khalili anchor, and
+energy must balance, the steady state must match the Heydari anchor, and
 perturbations must move temperatures in the physically correct direction.
 """
 import numpy as np
@@ -15,7 +15,7 @@ from thermaloop import system, safety
 
 
 # --------------------------------------------------------------------------
-# Anchor validation (Khalili et al. 2024: eps ~ 0.82-0.83)
+# Anchor validation (Heydari et al. 2024: eps ~ 0.82-0.83)
 # --------------------------------------------------------------------------
 def test_steady_state_matches_anchor():
     ss = rc_network.steady_state(rc_network.default_params(), 700.0)

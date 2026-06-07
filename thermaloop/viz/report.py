@@ -49,7 +49,7 @@ _TEMPLATE = Template("""<!doctype html>
 {% endfor %}
 
 <p class="foot">Assumptions and limits: see <code>docs/ASSUMPTIONS.md</code>.
-Steady-state behavior is calibrated to Khalili et al. (2024) and enforced by the
+Steady-state behavior is calibrated to Heydari et al. (2024) and enforced by the
 test suite. This report is an educational engineering analysis, not a
 production or certification artifact.</p>
 </body></html>""")

@@ -1,8 +1,8 @@
 """Coolant Distribution Unit (CDU) heat-exchanger model.
 
 Counterflow effectiveness-NTU. UA is calibrated so that effectiveness lands
-at ~0.82 at design flow, matching the experimental anchor in Khalili et al.,
-Applied Thermal Engineering 240 (2024).
+at ~0.82 at design flow, matching the experimental anchor in Heydari et al.,
+Applied Thermal Engineering 239 (2024).
 """
 import numpy as np
 

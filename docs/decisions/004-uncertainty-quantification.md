@@ -55,7 +55,7 @@ die-temperature envelope over time.
 
 - The headline operational quantity (margin) becomes a distribution, not a
   scalar. The CLI verdict flags throttle probability > 5 % as at-risk.
-- The reduced-order solver is unchanged. The Khalili validation anchor and
+- The reduced-order solver is unchanged. The Heydari validation anchor and
   the closed-form/JS equivalence test stay intact.
 - Independence is assumed across uncertain parameters in v0. Some pairs
   (cold-plate convection and TIM resistance, both driven by manufacturing

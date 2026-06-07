@@ -102,7 +102,7 @@ supply, design flow.
 
 | Quantity                | ThermaLoop | Anchor                      |
 |-------------------------|-----------:|-----------------------------|
-| CDU effectiveness       | 0.822      | 0.82–0.83 (Khalili 2024)    |
+| CDU effectiveness       | 0.822      | 0.82–0.83 (Heydari 2024)    |
 | T_die at TDP            | 74.1 °C    | 70–85 °C, H100-class        |
 | Loop ΔT above facility  | 6.8 K      | 5–10 K, warm-water D2C      |
 | Heat-balance closure    | 100 %      | conservation                |
