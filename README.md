@@ -29,6 +29,10 @@ trigger a pump failure and watch it race toward throttle. Runs entirely in the
 browser on the *same* validated physics (die temp matches the Python model to
 0.000 °C, enforced by a test). Source: [docs/explorer.html](docs/explorer.html).
 
+**📄 White paper:** [docs/whitepaper.md](docs/whitepaper.md) — model
+architecture, validation state, uncertainty-quantification methodology,
+limitations, and roadmap (paper v0.2, tracks release v0.3.0).
+
 ## What it does
 
 - Simulates an 8-GPU H100-class server cooling loop end to end.
@@ -70,7 +74,11 @@ thermaloop sweep configs/sweeps/flow_vs_margin.yaml
 # Generate the reference design-space maps (envelope, 1-D loop, heat-path Sankey)
 thermaloop envelope
 
-pytest -q          # 35 tests: physics invariants, anchor validation, scenarios
+# Propagate parameter uncertainty through a fault (LHS ensemble; margin
+# percentiles, throttle probability, 5-95% die-temperature envelope)
+thermaloop ensemble configs/uq/pump_degradation_uq.yaml
+
+pytest -q          # 47 tests: physics invariants, anchor validation, scenarios, UQ
 ```
 
 Each command writes a portable HTML report to `reports/<name>/report.html` with
@@ -90,6 +98,14 @@ the server with real Microsoft Azure LLM inference traces (CC-BY, shipped in
 `data/`). `configs/pg_coolant.yaml` swaps water for a 25% propylene-glycol/water
 mixture via the temperature-dependent fluid model — lower specific heat and
 higher viscosity, so the die runs hotter.
+
+Ensemble UQ (`configs/uq/`): `anchor_uq.yaml` propagates realistic parameter
+uncertainty (cold-plate convection, CDU UA, TIM resistance, facility supply
+temperature) through the anchor operating point; `pump_degradation_uq.yaml`
+does the same through the pump-degradation fault — the point estimate says
+2.5 K margin and no throttle, the ensemble says 17 % throttle probability.
+Declare uncertain parameters in YAML (normal / lognormal / uniform /
+triangular; LHS or MC); no code needed.
 
 Scenarios are plain YAML — define a workload, a coolant fluid, static overrides,
 and a perturbation timeline (step/ramp on flow, CDU conductance, facility
@@ -129,8 +145,8 @@ configs/      baseline + faults/ + sweeps/ + azure + pg_coolant  (YAML)
 examples/     run_azure.py (real-trace driver)
 experimental/ DeepONet surrogate (unsupported; see its README)
 data/         Azure LLM inference traces (CC-BY)
-docs/         ASSUMPTIONS, VALIDATION, gallery, decision records (ADRs 000-003)
-tests/        35 tests: physics invariants, anchor validation, scenarios, fluids
+docs/         whitepaper, ASSUMPTIONS, VALIDATION, gallery, decision records (ADRs 000-004)
+tests/        47 tests: physics invariants, anchor validation, scenarios, fluids, UQ
 ```
 
 ## Roadmap
@@ -141,11 +157,20 @@ Azure-trace scenarios; self-contained HTML reports; the plot suite (transient,
 safety-margin timeline, Pareto, thermal envelope, 1-D loop field, heat-path
 Sankey); and a committed [gallery](docs/gallery.md).
 
-Next:
-- Multi-rack / shared-CDU topology (currently single server) — a deliberate
-  scope decision, not a default
+Done in v0.3: parametric uncertainty-quantification ensemble runner
+(`thermaloop ensemble`, ADR-004) — LHS/MC sampling over declared parameter
+distributions, margin percentiles, throttle probability, 5-95 % transient
+envelopes; canonical UQ configs; the white paper (`docs/whitepaper.md`).
+
+Next (in order):
+- Validation expansion: a cold-plate-level anchor (Samal et al. 2025,
+  DIOJIC-CP, PG25) and a real-world deployment anchor (CEC-500-2024-061) —
+  the highest-priority effort; see whitepaper §4.4
+- Sensitivity decomposition (Sobol / Morris) on top of the ensemble runner
+- Correlated uncertain parameters (correlation matrices)
 - Per-timestep fluid-property variation (currently constant within a run)
-- (Experimental) operator-learning surrogate with a Fourier-neural-operator trunk
+- Multi-rack / shared-CDU topology — deliberately held pending validation
+  expansion
 
 ## Author
 

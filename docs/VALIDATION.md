@@ -39,3 +39,23 @@ both models, lumped-vs-1D agreement, and physical-direction monotonicity
 -> hotter). CI runs them on every push.
 
 These numbers are regenerated from the model, not hand-written.
+
+## Anchor scope (what the anchor does and does not provide)
+
+The Heydari 2024 anchor measured two liquid-to-air CDUs serving three racks
+at a combined 128 kW, instrumented with thermal test vehicles (case
+thermocouples). Two transfers are made when calibrating ThermaLoop against
+it: (1) the effectiveness values were measured on liquid-to-air CDUs, while
+ThermaLoop models a liquid-to-liquid CDU and adopts epsilon as a calibrated
+design parameter; (2) the anchor contains no measured GPU die temperature,
+so T_die is checked against the published H100-class operational envelope,
+not against a measured residual. Tightening this — a cold-plate-level anchor
+with a genuine predicted-vs-measured residual — is the top roadmap item; see
+whitepaper section 4.4.
+
+## Ensemble robustness check
+
+`tests/test_uq.py::test_ensemble_brackets_validated_anchor` locks a
+self-consistency property in CI: a 200-sample LHS ensemble at the anchor
+operating point must bracket the 74.1 C point estimate, and no sample may
+cross the 90 C throttle limit at the design point.
