@@ -1,0 +1,54 @@
+# Validation anchor: Martinez, Caceres & Ortega (2024), J. Electronic
+# Packaging 146(4) 041118 — "Development of a Thermal Metrology Standard for
+# Evaluation of Cold Plate Thermal Resistance as a Performance Metric."
+# Villanova University LATFS; NSF ES2 center (Grant IIP-1738782).
+#
+# Lab independence note: different laboratory and instrumentation from the
+# Heydari 2024 anchor (Binghamton), but both groups are affiliated with the
+# NSF ES2 center. Disclosed per validation protocol.
+#
+# What this anchor measures (measure-check):
+#   R_Fo = (T_Fo,case - T_bulk,in) / Q for the cold-plate/TIM SYSTEM
+#   (Fourier-extrapolated case temperature; INCLUDES TIM resistance).
+#   R_LMTD = 1/UA (heat-exchanger definition, Eq. 10) reported separately.
+# The paper's STTV-validation value (0.0198 K/W @ 2 LPM) is a DIFFERENT
+# commercial plate — not Cold Plate S — and must not be mixed with this data.
+#
+# Data provenance: digitized from Figs. 6(a)/8(a)/9(a) (grease TIM, 15 PSI,
+# T_in = 32 C, Q = 1000 W). Digitization uncertainty ~ +/-0.002 K/W; the
+# paper's measurement uncertainty bars ~ +/-10%. Exact tabulated data
+# available from the corresponding author (per Data Availability Statement);
+# replace digitized values if/when obtained.
+anchor: villanova_coldplate_2024
+source: "Martinez, Caceres & Ortega 2024, JEP 146(4) 041118"
+fluid: pg25
+heat_load_W: 1000.0
+inlet_temp_C: 32.0
+tim: "grease, 15 PSI"
+geometry:
+  n_channels: 120
+  channel_width_m: 0.2e-3
+  channel_height_m: 4.0e-3
+  channel_length_m: 43.0e-3
+measured:
+  # total volumetric flow (LPM) -> R_Fo (K/W), cold-plate/TIM system
+  R_Fo_vs_flow:
+    1.0: 0.0415
+    2.0: 0.0370
+    3.0: 0.0350
+    4.0: 0.0340
+  R_LMTD_KperW: 0.023        # Fig 9(a), Cold Plate S, ~constant over range
+  measurement_uncertainty_frac: 0.10
+calibration:
+  # anchor model: R_Fo(m_dot) = R_fixed + 1/(eps(m_dot) * m_dot * cp)
+  # UA scaled as (m_dot/m_dot_cal)^flow_exponent; calibrated at 2 LPM.
+  calibrate_at_LPM: 2.0
+tolerances:
+  # CI locks (see tests/test_validation_anchors.py):
+  laminar_fit_rms_max: 0.05        # laminar exponent must fit within 5% RMS
+  turbulent_misfit_rms_min: 0.20   # falsification guard: 0.8 must misfit >20%
+regime:
+  # channel Reynolds across the reported envelope, computed with the
+  # ThermaLoop PG25 property model — locked laminar
+  Re_min_expected: 20.0
+  Re_max_expected: 300.0

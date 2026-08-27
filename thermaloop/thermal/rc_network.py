@@ -23,10 +23,16 @@ def default_params(n_gpus=8):
         # Conductive resistances (K/W per GPU); sum ~0.045 -> typical H100 R_jc
         R_j_ihs=0.025,
         R_ihs_cp=0.020,
-        # Cold-plate convection (microchannel), flow-scaled via Dittus-Boelter
+        # Cold-plate convection (microchannel), flow-scaled as
+        # h ~ (m_dot/m_dot_ref)^flow_exponent (see thermal/convection.py).
+        # Default 0.8 (Dittus-Boelter, turbulent) retained for backward
+        # compatibility with the calibrated anchor point; measured laminar
+        # cold-plate data (Martinez et al. 2024) supports ~0-1/3 at few-LPM
+        # flows. The calibration point itself is exponent-independent.
         h0=30000.0,            # W/m^2/K reference convection coefficient
         A_cp=0.004,            # m^2 wetted area per cold plate
         m_dot_ref=0.03,        # kg/s reference flow per GPU
+        flow_exponent=0.8,     # regime-dependent; see thermal/convection.py
         # Capacitances (J/K, per server)
         C_die=5.0 * n_gpus,
         C_ihs=80.0 * n_gpus,
@@ -50,7 +56,8 @@ def _odes(t, T, P_func, p):
 
     q_j_ihs = (T_j - T_ihs) / (p['R_j_ihs'] / p['n_gpus'])
     q_ihs_cp = (T_ihs - T_cp) / (p['R_ihs_cp'] / p['n_gpus'])
-    h_eff = (p['h0'] * (p['m_dot'] / (p['n_gpus'] * p['m_dot_ref'])) ** 0.8
+    h_eff = (p['h0'] * (p['m_dot'] / (p['n_gpus'] * p['m_dot_ref']))
+             ** p.get('flow_exponent', 0.8)
              * p.get('h_property_factor', 1.0))
     q_cp_loop = h_eff * (p['A_cp'] * p['n_gpus']) * (T_cp - T_loop)
 
@@ -106,7 +113,8 @@ def steady_state_closed_form(params, P_per_gpu_const=700.0):
     Q = P_per_gpu_const * n
     eps, C_min = epsilon_ntu_counterflow(
         params['m_dot'], params['m_dot_fac'], cp, cp, params['UA_hx'])
-    h_eff = params['h0'] * (params['m_dot'] / (n * params['m_dot_ref'])) ** 0.8 * hf
+    h_eff = (params['h0'] * (params['m_dot'] / (n * params['m_dot_ref']))
+             ** params.get('flow_exponent', 0.8) * hf)
     T_loop = params['T_fac_in'] + Q / (eps * C_min)
     T_cp = T_loop + Q / (h_eff * params['A_cp'] * n)
     T_ihs = T_cp + Q * (params['R_ihs_cp'] / n)

@@ -57,10 +57,13 @@ def default_params_1d(n_gpus=8, geom=None):
         # Resistances (K/W) -- same as lumped
         R_j_ihs=0.025,
         R_ihs_cp=0.020,
-        # Cold plate convection (modern microchannel)
+        # Cold plate convection (modern microchannel); flow_exponent is
+        # regime-dependent -- see thermal/convection.py (default 0.8 kept for
+        # backward compatibility with the calibrated anchor point).
         h0=30000.0,
         A_cp=0.004,
         m_dot_ref=0.03,
+        flow_exponent=0.8,
         # Capacitances (J/K)
         C_die=5.0 * n_gpus,
         C_ihs=80.0 * n_gpus,
@@ -94,7 +97,8 @@ def thermal_odes_1d(t, T, P_func, p):
     q_ihs_cp = (T_ihs - T_cp) / (p['R_ihs_cp'] / p['n_gpus'])
 
     # Cold plate -> coolant convection, distributed over CP cells
-    h_eff = (p['h0'] * (p['m_dot'] / (p['n_gpus'] * p['m_dot_ref'])) ** 0.8
+    h_eff = (p['h0'] * (p['m_dot'] / (p['n_gpus'] * p['m_dot_ref']))
+             ** p.get('flow_exponent', 0.8)
              * p.get('h_property_factor', 1.0))
     A_total = p['A_cp'] * p['n_gpus']
     A_per_cp_cell = A_total / g['N_cp']
@@ -179,7 +183,8 @@ def steady_state_1d(params, P_const=700.0):
     T_loop = sol.y[3:3 + N, -1]
     T_fac = sol.y[3 + N, -1]
     # Heat balance check
-    h_eff = (params['h0'] * (params['m_dot'] / (params['n_gpus'] * params['m_dot_ref'])) ** 0.8
+    h_eff = (params['h0'] * (params['m_dot'] / (params['n_gpus'] * params['m_dot_ref']))
+             ** params.get('flow_exponent', 0.8)
              * params.get('h_property_factor', 1.0))
     A_per_cp = params['A_cp'] * params['n_gpus'] / g['N_cp']
     UA_per_cdu = params['UA_hx_total'] / g['N_cdu']
